@@ -1,0 +1,9 @@
+# --- グループ 1: 最初に開くウィンドウ ---
+https://calendar.google.com
+
+--- 
+
+# --- グループ 2: 2つ目に開くウィンドウ ---
+https://mail.google.com
+
+--- 
