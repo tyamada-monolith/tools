@@ -1,8 +1,9 @@
 # 日報をGit管理したくない場合は↓を有効化（任意）
 notes/daily/
 
-# 個人URLは常に無視
-urls.local.txt
+# 常に無視
+data
+config/urls.txt
 
 # エディタ・OSごみ
 .DS_Store
