@@ -4,6 +4,7 @@ notes/daily/
 # 常に無視
 data
 config/urls.txt
+.env
 
 # エディタ・OSごみ
 .DS_Store

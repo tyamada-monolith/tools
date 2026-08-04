@@ -1,50 +1,19 @@
 #!/usr/bin/env python3
+"""起動セレモニー。日次データを作ってから VSCode と Chrome を開く。
+
+データだけ欲しいとき（時刻トリガーなど）は daily.py を直接叩く。
+"""
 import os
+import shutil
 import subprocess
 import time
-import shutil
 from pathlib import Path
 
-# src配下のモジュールとしてインポート
-from src.daily import create_daily_file
+from daily import run_daily
 from src.urls import open_url_grouped_with_chrome
 
 # 実行スクリプトのあるディレクトリ（プロジェクトルート）
 REPO_ROOT = Path(__file__).resolve().parent
-
-# data/todo.txt をデフォルトとして使用
-TODO_FILE_PATH = Path(os.environ.get("TODO_FILE", REPO_ROOT / "data" / "todo.txt"))
-
-
-def append_todo_to_daily(today_file: Path | None) -> None:
-    """
-    todo.txt の内容を日報ファイルの末尾に追記する
-    """
-    if not today_file or not today_file.exists():
-        return
-
-    if not TODO_FILE_PATH.exists():
-        return
-
-    try:
-        content = TODO_FILE_PATH.read_text(encoding="utf-8").strip()
-        
-        if not content:
-            return
-
-        print(f"=== TODO追記中 ({TODO_FILE_PATH.name}) ===")
-        
-        with open(today_file, "a", encoding="utf-8") as f:
-            f.write(content)
-            f.write("\n")
-        
-        print("  ✓ 日報に追記しました")
-
-        # 【オプション】追記後にtodo.txtの中身を空にする場合
-        # TODO_FILE_PATH.write_text("", encoding="utf-8")
-
-    except Exception as e:
-        print(f"  ! TODO追記に失敗しました: {e}")
 
 
 def open_vscode(today_file: Path | None) -> None:
@@ -80,12 +49,8 @@ def open_vscode(today_file: Path | None) -> None:
 
 
 def main() -> None:
-    print("=== デイリーファイル作成中 ===")
-    today_file = create_daily_file()
-    if today_file:
-        print(f"  ✓ {today_file}")
-    
-    append_todo_to_daily(today_file)
+    # 人が叩いたときは曜日を問わず作る（土日に出社したケース）
+    today_file = run_daily(force=True)
 
     open_vscode(today_file)
     open_url_grouped_with_chrome()
