@@ -7,7 +7,7 @@
 ```sh
 python daily.py          # 日次データだけ作る（平日のみ・UI 無し・何度叩いても同じ）
 python daily.py --force  # 土日でも作る
-python run.py            # daily.py + VSCode と Chrome を開く（従来の入口）
+python run.py            # daily.py + /daily-plan（バックグラウンド）+ VSCode と Chrome
 ```
 
 **2つに分けてある理由**：Dropbox → Google Drive の移行作業などで PC をつけっぱなしにすると、
@@ -49,6 +49,20 @@ wsl.exe -d <ディストロ名> -- bash -lc 'cd ~/workspace_tyamada/daily-startu
 ブロックは**追記ではなく置換**なので、何度叩いても二重にならない。
 **ブロックの中に手書きしないこと**（次の実行で消える）。
 
+もう1つ、Claude Code の `/daily-plan`（今日のタイムテーブル生成）が
+`<!-- plan:begin -->` 〜 `<!-- plan:end -->` を auto ブロックの直前に書く。
+こちらも置換方式。daily.py はこのブロックに触らないし、/daily-plan は
+auto ブロックに触らない。
+
+コマンド定義の実体は `config/claude-commands/daily-plan.md`（このリポジトリで管理）。
+`~/.claude/commands/daily-plan.md` はそこへのシンボリックリンク。新しいマシンでは一度だけ張る:
+
+```sh
+ln -s ~/workspace_tyamada/daily-startup/config/claude-commands/daily-plan.md ~/.claude/commands/daily-plan.md
+```
+
+リンクが切れると `/daily-plan` が「コマンドが見つからない」で止まる（黙って古い定義で動き続けることはない）。
+
 Trello の取得に失敗したときは、その日すでに書けている一覧を残す（空の内容で上書きしない）。
 
 ## Trello 一覧の形
@@ -83,6 +97,7 @@ Trello の取得に失敗したときは、その日すでに書けている一�
 ```
 data/                                  # .gitignore 済み（丸ごと）
 ├── todo.txt                           # 手書き。Trello へ寄せていく方針なので最終的に空になる
+├── daily-plan.log                     # run.py が叩く /daily-plan の出力（毎回上書き）
 ├── notes/daily/2026/2026-08-04.md     # 日報 = 日次の蓄積そのもの
 └── trello/engineer-team/
     └── 2026/2026-08-04.json           # 差分計算の正
@@ -123,8 +138,9 @@ URL をそのまま出すとトークンが平文で残る）。
 | ファイル | 役割 |
 |---|---|
 | `daily.py` | 日次データの入口。欠損日補完 → 日報生成 → Trello 取得 → ブロック書き込み |
-| `run.py` | `daily.py` + VSCode / Chrome |
+| `run.py` | `daily.py` + `/daily-plan`（ヘッドレス・バックグラウンド）+ VSCode / Chrome |
 | `src/note.py` | 日報ファイルの生成・自動生成ブロックの置換 |
 | `src/trello.py` | Trello REST。取得のみ |
 | `src/snapshot.py` | json の蓄積・前回比の算出・Trello セクションの整形 |
 | `src/urls.py` | Chrome の URL グループを開く |
+| `config/claude-commands/daily-plan.md` | `/daily-plan` の実体（`~/.claude/commands/` からシンボリックリンク） |
