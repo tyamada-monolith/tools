@@ -6,7 +6,6 @@
 import os
 import shutil
 import subprocess
-import time
 from pathlib import Path
 
 from daily import run_daily
@@ -26,26 +25,21 @@ def open_vscode(today_file: Path | None) -> None:
 
     # デフォルトでプロジェクトルートを開く
     workspace = os.environ.get("WORKSPACE", str(REPO_ROOT))
+
+    # ワークスペースと日報は1回の呼び出しで渡す。2回に分けて sleep で繋ぐと、
+    # VSCode のコールドスタート時に2本目の code が別ウィンドウを作り、
+    # 日報がワークスペースと違うウィンドウで開く。
+    cmd = [code_path, workspace]
+    if today_file:
+        cmd += ["-g", str(today_file)]
     try:
         subprocess.Popen(
-            [code_path, workspace],
+            cmd,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
     except Exception:
         pass
-
-    time.sleep(0.4)
-
-    if today_file:
-        try:
-            subprocess.Popen(
-                [code_path, "-r", "-g", str(today_file)],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        except Exception:
-            pass
 
 
 def main() -> None:
